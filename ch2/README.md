@@ -1,5 +1,6 @@
 
-# Challenge: Data Analysis
+# Challenge(2)
+Data Analysis
 -----------------------------------------------
 * The purpose of this task is to analyze the user location data with a particular time.
 
@@ -12,10 +13,10 @@
     * **CELL_ID** : INT represents the cell id
     * **LOCATION** : STRING represents the location id
    
-**You will found the data sample file i used for the task "ch2_mock" in the ch2 directory**
+**You will found the data sample file i used for the task "files/ch2_mock" in the ch2 directory**
     
 
-<img src="input.jpg">
+<img src="img/input.jpg">
 
 ## Assumption :
 -----------------------------------------
@@ -36,99 +37,32 @@ But however we can avoid that by selecting the last transaction in the dataset b
  
 <font color='blue'>**select start_date_time from mobile_table order by start_date_time desc limit 1**</font>
 
-SELECT sub_id,
-		location_id,
-		start_date_time as arrive_at,
-		COALESCE((Lead(start_date_time, 1) OVER(PARTITION BY sub_id ORDER BY start_date_time asc)),
-        CAST("2017-03-10 13:00:00" as TIMESTAMP)) as leave_at,
-		(row_number() over (order by id) - row_number() over (partition by location_id order by id)) as group_id
-FROM mobile_table
+
+<img src="img/s1.png">
+
 * **stay_about** will calculate the period between every two consecutive transactions i converted the datetime to seconds to be easy to subtracted then i converted the difference to mintues
-SELECT sub_id,
-	   location_id,
-	   group_id,
-	   arrive_at,
-	   leave_at,
-	   (unix_timestamp(leave_at)- unix_timestamp(arrive_at))/60 as stay_about
-FROM(
-		  SELECT sub_id,
-				 location_id,
-				 start_date_time as arrive_at,
-				 COALESCE((Lead(start_date_time, 1) OVER(PARTITION BY sub_id ORDER BY start_date_time asc)),
-				 CAST("2017-03-10 13:00:00" as TIMESTAMP)) as leave_at,
-				 (row_number() over (order by id) -row_number() over (partition by location_id order by id)) as group_id
-		  FROM mobile_table
-		  ) t
-) t1
+
+<img src="img/s2.png">
+
 * **stay_about_for_location** Will calculate sum of each consecutive transactions for the user in specific locaiton
-SELECT sub_id , location_id, sum(stay_about) as stay_about_for_location
-	FROM(
-		SELECT sub_id,
-			   location_id,
-			   group_id,
-			   arrive_at,
-			   leave_at,
-			   (unix_timestamp(leave_at)- unix_timestamp(arrive_at))/60 as stay_about
-		FROM(
-		  SELECT sub_id,
-				 location_id,
-				 start_date_time as arrive_at,
-				 COALESCE((Lead(start_date_time, 1) OVER(PARTITION BY sub_id ORDER BY start_date_time asc)),
-				 CAST("2017-03-10 13:00:00" as TIMESTAMP)) as leave_at,
-				 (row_number() over (order by id) -row_number() over (partition by location_id order by id)) as group_id
-		  FROM mobile_table
-		  ) t
-		) t1
-	group by sub_id , location_id, group_id
-	order by sub_id , location_id, group_id
+
+<img src="img/s3.png">
+
 * **total_duration** will represents the total duration the user spent at specific location 
 * **max_consecutive_duration** will maximum duration the user spent at specific location
 * **min_consecutive_duration** will minimun duration the user spent at specific location
-SELECT sub_id,
-	   location_id,
-	   sum(stay_about_for_location) as total_duration,
-	   max(stay_about_for_location) as max_consecutive_duration,
-	   min(stay_about_for_location) as min_consecutive_duration
-FROM(
-	SELECT sub_id , location_id, sum(stay_about) as stay_about_for_location
-	FROM(
-		SELECT sub_id,
-			   location_id,
-			   group_id,
-			   arrive_at,
-			   leave_at,
-			   (unix_timestamp(leave_at)- unix_timestamp(arrive_at))/60 as stay_about
-		FROM(
-		  SELECT sub_id,
-				 location_id,
-				 start_date_time as arrive_at,
-				 COALESCE((Lead(start_date_time, 1) OVER(PARTITION BY sub_id ORDER BY start_date_time asc)),
-				 CAST("2017-03-10 13:00:00" as TIMESTAMP)) as leave_at,
-				 (row_number() over (order by id) -row_number() over (partition by location_id order by id)) as group_id
-		  FROM mobile_table
-		  ) t
-		) t1
-	group by sub_id , location_id, group_id
-	order by sub_id , location_id, group_id
-) t3
-group by sub_id , location_id
-order by sub_id , location_id
+
+<img src="img/s4.png">
+
 **Final Notes**
 * I tried to avoid joins in this script due to it's bad performance and usually sub queries are faster.
 * The Script is attached at the ch2 directory **script.txt**
 * You can use the following script to create the table 
-CREATE TABLE IF NOT EXISTS MOBILE_TABLE (
-  id int,
-  sub_id String,
-  start_date_time timestamp,
-  cell_id int, 
-  location_id String)
-ROW FORMAT DELIMITED
-FIELDS TERMINATED BY ','
-LINES TERMINATED BY '\n'
-LOCATION '/ch2'
+
+<img src="img/s5.png">
+
 ## Output:
 ---------------------------
 * This is a sample of my script run output using the data file attached **"ch2_mock"**
 
-<img src="output.png">
+<img src="img/output.png">
