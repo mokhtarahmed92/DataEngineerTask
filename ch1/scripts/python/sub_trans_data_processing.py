@@ -79,8 +79,7 @@ def sub_trans_data_processing(intputFilePath, outputFilePath, dpiDuplicatesFileP
     subscriber_services = subscriber_services.groupByKey().map(lambda line: (line[0], extract_result(line[1])[0], extract_result(line[1])[1]))
     subscriber_services = subscriber_services.toDF(["SubscriberId", "MostUsedServiceName_1", "MostUsedServiceName_2"])
 
-    mobile_subscriber_summary_df = mobile_subscriber_summary_df.join(subscriber_services,
-                                                                     mobile_subscriber_summary_df.SubscriberId == subscriber_services.SubscriberId)
+    mobile_subscriber_summary_df = mobile_subscriber_summary_df.join(subscriber_services, ['SubscriberId'])
 
     mobile_subscriber_summary_df = mobile_subscriber_summary_df.withColumn("Event_Type", func.lit("Mobile"))
     mobile_subscriber_summary_df = mobile_subscriber_summary_df.withColumn("MAC_Address", func.lit("N/A"))
