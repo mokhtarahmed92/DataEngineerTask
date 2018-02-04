@@ -131,4 +131,4 @@ LOCATION '/ch2'
 ---------------------------
 * This is a sample of my script run output using the data file attached **"ch2_mock"**
 
-<img src="output.PNG">
+<img src="output.png">
